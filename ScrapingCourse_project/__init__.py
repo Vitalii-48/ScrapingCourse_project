@@ -1,0 +1,1 @@
+# ScrapingCourse_project\__init__.py
