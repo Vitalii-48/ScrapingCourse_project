@@ -1,4 +1,4 @@
-# modules\1_get_listings.py
+# modules\1_get_listings_requests.py
 
 """
 Парсинг списку з сайту scrapingcourse.com. Збирає назви, посилання та картинки, заходить на сторінку кожного товару,
@@ -9,6 +9,7 @@ from load_django import *
 from parser_app.models import Product
 import requests
 from bs4 import BeautifulSoup
+from decimal import Decimal
 import json
 import time
 
@@ -62,21 +63,24 @@ for product in products:
     except Exception:
         json_data = None
 
+
     print("Ціна:", price)
     print("Опис:", description)
     print("SKU (детально):", sku_detail)
     print("JSON-LD:", json_data)
 
-    product = Product(
-        name=title,
+    Product.objects.update_or_create(
         url=link,
-        image=img_url,
-        price=float(price.replace("$", "")) if price else None,
-        description=description,
-        sku=sku_detail,
-        json_ld=json_data
+        defaults={
+            'name': title,
+            'image': img_url,
+            'price': Decimal(price.replace("$", "").strip()),
+            'description': description,
+            'sku': sku_detail,
+            'json_ld': json_data,
+            'source': "requests"
+        }
     )
-    product.save()
 
     # невелика пауза, щоб не перевантажувати сайт
     time.sleep(1)

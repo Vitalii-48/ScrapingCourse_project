@@ -1,4 +1,4 @@
-# modules\2_get_info.py
+# modules\4_get_info_requests.py
 
 """
 Перегляд даних із моделі Product.

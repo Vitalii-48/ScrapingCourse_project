@@ -2,7 +2,7 @@
 
 """
 Модель Product для збереження даних парсингу:
-назва, посилання, картинка, ціна, опис, артикул (SKU), JSON-LD.
+назва, посилання, посилання на картинку, ціна, опис, артикул (SKU), JSON-LD.
 """
 
 from django.db import models
@@ -16,6 +16,10 @@ class Product(models.Model):
     description = models.TextField(blank=True, null=True)
     sku = models.CharField(max_length=50, blank=True, null=True)
     json_ld = models.JSONField(blank=True, null=True)
+    source = models.CharField(max_length=50, blank=True, null=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['url', 'source'], name='unique_product_source_url')]
 
     def __str__(self):
-        return self.name
+        return f"{self.name} [{self.source}]"
