@@ -46,17 +46,16 @@ def scrape_products():
         print(f"Знайдено товарів: {len(product_links)}")
 
         # --- Парсинг кожного товару ---
-        for url in product_links[:20]: # беремо тільки перші 20 товарів
+        for link in product_links[:20]: # беремо тільки перші 20 товарів
 
             try:
-                driver.get(url)
+                driver.get(link)
 
                 title = wait.until(EC.presence_of_element_located((By.CLASS_NAME, "product_title"))).text
                 price_text = driver.find_element(By.CSS_SELECTOR, "span.woocommerce-Price-amount bdi").text
                 match = re.search(r"[\d\.]+", price_text)
                 price = Decimal(match.group()) if match else None
                 img_url = driver.find_element(By.CSS_SELECTOR, ".woocommerce-product-gallery__image img").get_attribute("src")
-
 
                 try:
                     description = driver.find_element(By.CSS_SELECTOR, "#tab-description p").text
@@ -76,7 +75,7 @@ def scrape_products():
 
                 # --- Запис у БД ---
                 Product.objects.update_or_create(
-                    url=url,
+                    url=link,
                     defaults={
                         'name': title,
                         'image': img_url,
@@ -90,7 +89,7 @@ def scrape_products():
                 print(f"Збережено: {title}")
 
             except Exception as e:
-                print(f"Помилка на сторінці {url}: {e}")
+                print(f"Помилка на сторінці {link}: {e}")
 
     finally:
         driver.quit()

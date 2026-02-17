@@ -8,44 +8,56 @@
 
 from load_django import *
 from parser_app.models import Product
-
+from asgiref.sync import sync_to_async
 import asyncio
 import json
+import re
 from playwright.async_api import async_playwright
+from decimal import Decimal
 
 async def scrape_products():
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True)
         page = await browser.new_page()
-        await page.goto("https://www.scrapingcourse.com/infinitescroll/")
+        await page.goto("https://www.scrapingcourse.com/infinite-scrolling")
 
         # Скролимо кілька разів, щоб підвантажити товари
-        for _ in range(5):
+        for _ in range(3):
             await page.evaluate("window.scrollBy(0, document.body.scrollHeight)")
             await asyncio.sleep(2)
 
-        products = await page.query_selector_all(".product")
+        product_elements = page.locator(".product-item")
+        count = 3 #await product_elements.count()
 
-        for product in products:
+        product_links = []
+        for i in range(count):
+            url_href = await product_elements.nth(i).locator("a").first.get_attribute("href")
+            if url_href:
+                product_links.append(url_href)
+
+        print("Зібрані посилання:", product_links)
+
+        for link in product_links:
             try:
-                title = await product.query_selector(".woocommerce-loop-product__title")
-                url = await product.query_selector("a")
-                img = await product.query_selector("img")
-
-                title_text = await title.inner_text() if title else None
-                url_href = await url.get_attribute("href") if url else None
-                img_url = await img.get_attribute("src") if img else None
-
                 # Заходимо на сторінку товару
                 detail_page = await browser.new_page()
-                await detail_page.goto(url_href)
-                await asyncio.sleep(1)
+                await detail_page.goto(link)
+                await asyncio.sleep(0.5)
+
+                title = await detail_page.locator("h1.product_title.entry-title").inner_text()
 
                 try:
-                    price_el = await detail_page.query_selector("span.woocommerce-Price-amount bdi")
-                    price = await price_el.inner_text() if price_el else None
+                    price_text = await detail_page.locator("p.price span.woocommerce-Price-amount bdi").inner_text()
+                    match = re.search(r"[\d\.]+", price_text)
+                    price = Decimal(match.group()) if match else None
                 except:
                     price = None
+                    print(price, "exept")
+
+                try:
+                    img_url = await detail_page.locator("img.product-image").first.get_attribute("src")
+                except:
+                    img_url = None
 
                 try:
                     desc_el = await detail_page.query_selector("div#tab-description p")
@@ -66,22 +78,13 @@ async def scrape_products():
                 except:
                     json_data = None
 
-                if price:
-                    clean_price = price.replace("$", "").replace(",", "").strip()
-                    try:
-                        clean_price = float(clean_price)
-                    except:
-                        clean_price = None
-                else:
-                    clean_price = None
-
                 # Запис у БД
-                Product.objects.update_or_create(
-                    url=url_href,
+                await sync_to_async(Product.objects.update_or_create)(
+                    url=link,
                     defaults={
-                        'name': title_text,
+                        'name': title,
                         'image': img_url,
-                        'price': clean_price,
+                        'price': price,
                         'description': description,
                         'sku': sku_detail,
                         'json_ld': json_data,
@@ -90,7 +93,6 @@ async def scrape_products():
                 )
 
                 await detail_page.close()
-
             except Exception as e:
                 print(f"Помилка при обробці продукту: {e}")
 
