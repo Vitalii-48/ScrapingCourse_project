@@ -46,7 +46,7 @@ def scrape_products():
         print(f"Знайдено товарів: {len(product_links)}")
 
         # --- Парсинг кожного товару ---
-        for link in product_links[:20]: # беремо тільки перші 20 товарів
+        for link in product_links:
 
             try:
                 driver.get(link)

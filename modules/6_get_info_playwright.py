@@ -1,4 +1,4 @@
-# modules\4_get_info_playwright.py
+# modules\6_get_info_playwright.py
 
 """
 Перегляд даних із моделі Product.

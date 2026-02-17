@@ -10,7 +10,7 @@
 
 🛠 Технологічний стек
 Backend: Python, Django (ORM & Admin panel)
-Scraping: BeautifulSoup4, Requests
+Scraping: BeautifulSoup4, Requests, Selenium, Playwright
 Database: PostgreSQL
 Formats: JSON, CSV, JSON-LD
 
@@ -26,9 +26,13 @@ Formats: JSON, CSV, JSON-LD
 │   ├── admin.py                   # Реєстрація моделей в адмінці
 │   └── models.py                  # Модель Product та інші
 │
-├── modules/                       # Допоміжні скрипти для парсингу
-│   ├── 1_get_listings.py          # Парсинг списку товарів
-│   ├── 2_get_info.py              # Парсинг деталей товарів
+├── modules/                       # Скрипти для парсингу
+│   ├── 1_get_listings_requests.py # Парсинг списку товарів через requests
+│   ├── 2_get_listings_selenium.py # Парсинг списку товарів через Selenium
+│   ├── 3_get_listings_playwright.py # Парсинг списку товарів через Playwright
+│   ├── 4_get_info_requests.py     # Перегляд товарів отриманих через requests
+│   ├── 5_get_info_selenium.py     # Перегляд товарів отриманих через Selenium
+│   ├── 6_get_info_playwright.py   # Перегляд товарів отриманих через Playwright
 │   ├── load_django.py             # Ініціалізація Django середовища
 │   └── status.py                  # Перевірка статусу парсингу
 │
@@ -73,12 +77,12 @@ python manage.py migrate
 3. Запуск парсингу
 Для того, щоб зібрати дані з сайту та зберегти їх у БД, запустіть:
 bash
-python modules/1_get_listings.py
+python modules/1_get_listings_requests.py
 
 4. Перегляд результатів
 Ви можете переглянути зібрані дані в консолі:
 bash
-python modules/2_get_info.py
+python modules/4_get_info_requests.py
 Або через Django Admin (спочатку створіть суперкористувача python manage.py createsuperuser та запустіть python manage.py runserver).
 
 📂 Експорт результатів

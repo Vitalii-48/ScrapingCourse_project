@@ -27,7 +27,7 @@ async def scrape_products():
             await asyncio.sleep(2)
 
         product_elements = page.locator(".product-item")
-        count = 3 #await product_elements.count()
+        count = await product_elements.count()
 
         product_links = []
         for i in range(count):
@@ -35,7 +35,6 @@ async def scrape_products():
             if url_href:
                 product_links.append(url_href)
 
-        print("Зібрані посилання:", product_links)
 
         for link in product_links:
             try:

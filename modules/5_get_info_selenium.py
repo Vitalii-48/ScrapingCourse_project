@@ -1,4 +1,4 @@
-# modules\4_get_info_selenium.py
+# modules\5_get_info_selenium.py
 
 """
 Перегляд даних із моделі Product.
